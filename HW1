@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, \
-    QPushButton, QGroupBox, QAction, QFileDialog
+    QPushButton, QGroupBox, QAction, QFileDialog,qApp,QErrorMessage 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QLabel
@@ -11,12 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
-##########################################
-## Do not forget to delete "return NotImplementedError"
-## while implementing a function
-########################################
 
 class App(QMainWindow):
+
     def __init__(self):
         super(App, self).__init__()
         self.inputLoaded = False
@@ -99,30 +96,94 @@ class App(QMainWindow):
 
         self.show()
 
+
+    def cumulative_prob_hist(hist,px,self):
+	    cumuProb = np.zeros(256)
+	    cumuProb[0]=hist[0]
+	    for i in range(1,256):
+	        cumuProb[i] = cumuProb[i-1] + hist[i]
+	    cumuProb /= px
+	    return cumuProb
+
     def histogramButtonClicked(self):
+        error_message = QErrorMessage(self)
         if not self.inputLoaded and not self.targetLoaded:
-            # Error: "First load input and target images" in MessageBox
-            return NotImplementedError
-        if not self.inputLoaded:
-            # Error: "Load input image" in MessageBox
-            return NotImplementedError
+            error_message.setWindowTitle("Input error")
+            error_message.showMessage('First load input and target images')
+
+        if not self.inputLoaded and self.targetLoaded:
+            error_message.setWindowTitle("Input error")
+            error_message.showMessage('Load input image')
         elif not self.targetLoaded:
-            # Error: "Load target image" in MessageBox
-            return NotImplementedError
+            error_message.setWindowTitle("Input error")
+            error_message.showMessage('Load target image')
+        else:
+    	    I = cv2.imread(self.nameOfInput)
+    	    T = cv2.imread(self.nameOfTarget)
+    	    I = self.matching(I,T,0)
+    	    I = self.matching(I,T,1)
+    	    I = self.matching(I,T,2)
+    	    cv2.imwrite('result.png',I)
+    	    self.labelResult.setPixmap(QPixmap("result.png"))
+    	    self.blue_re.plotHistogram(self.hist_maker(cv2.imread('result.png'),0))
+    	    self.red_re.plotHistogram(self.hist_maker(cv2.imread('result.png'),2))
+    	    self.green_re.plotHistogram(self.hist_maker(cv2.imread('result.png'),1))
 
-    def calcHistogram(self, I):
-        # Calculate histogram
-        return NotImplementedError
 
-class PlotCanvas(FigureCanvas):
-    def __init__(self, hist, parent=None, width=5, height=4, dpi=100):
-        return NotImplementedError
+    def hist_maker(self,image,index):
+        height, width, _ =image.shape
+        hist=np.zeros(256)
+        for i in range(256):
+        	for j in range(height):
+        		for k in range(width):
+        			if(i==image.item(j,k,index)):
+        				hist[i]+=1
+        return hist
+
+    def cumulative_prob_hist(self,hist,px):
+    	cumuProb = np.zeros(256)
+    	cumuProb[0]=hist[0]
+    	for i in range(1,256):
+    		cumuProb[i] = cumuProb[i-1] + hist[i]
+    	cumuProb /= px
+    	return cumuProb
+
+    def matching(self,input_image,target_image,index):
+    	x,y,z=target_image.shape
+    	target_imageProb = self.cumulative_prob_hist(self.hist_maker(target_image,index),x*y)
+    	x,y,z=input_image.shape
+    	input_imageProb=self.cumulative_prob_hist(self.hist_maker(input_image,index),x*y)
+    	new_values=np.zeros(256)
+    	for i in range(256):
+    		j=255
+    		while True:
+    			new_values.itemset(i,j)
+    			j-=1
+    			if j<0 or input_imageProb[i]>target_imageProb[j]:
+    				break
+    	for i in range(x):
+    		for j in range(y):
+    			intensity=input_image.item(i,j,index)
+    			input_image.itemset((i,j,index),new_values[intensity])
+    	return input_image
+
+class PlotCanvas(FigureCanvas):  
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
         # Init Canvas
-        self.plotHistogram(hist)
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+
+        FigureCanvas.__init__(self, fig)
+        self.setParent(parent)
+        FigureCanvas.setSizePolicy(self,
+        	QSizePolicy.Expanding,
+        	QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
 
     def plotHistogram(self, hist):
-        return NotImplementedError
         # Plot histogram
+        ax = self.figure.add_subplot(111)
+        ax.plot(hist, 'r-')
 
         self.draw()
 
