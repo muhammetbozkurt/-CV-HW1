@@ -64,16 +64,38 @@ class App(QMainWindow):
         self.initUI()
 
     def openInputImage(self):
-        # This function is called when the user clicks File->Input Image.
-        return NotImplementedError
+        nameOfInput = QFileDialog.getOpenFileName(self,"Open input")
+        self.nameOfInput=nameOfInput[0]
+        if self.nameOfInput:
+        	self.inputLoaded=True
+        	self.labelINPUT.setPixmap(QPixmap(self.nameOfInput))
+        	self.blue_input.plotHistogram(self.hist_maker(cv2.imread(self.nameOfInput),0))
+        	self.red_input.plotHistogram(self.hist_maker(cv2.imread(self.nameOfInput),2))
+        	self.green_input.plotHistogram(self.hist_maker(cv2.imread(self.nameOfInput),1))
 
     def openTargetImage(self):
-        # This function is called when the user clicks File->Target Image.
-        return NotImplementedError
+        nameOfTarget = QFileDialog.getOpenFileName(self,"Open target")
+        self.nameOfTarget=nameOfTarget[0]
+        if nameOfTarget:
+        	self.targetLoaded=True
+        	self.labelTARGET.setPixmap(QPixmap(self.nameOfTarget))
+        	self.blue_target.plotHistogram(self.hist_maker(cv2.imread(self.nameOfTarget),0))
+        	self.red_target.plotHistogram(self.hist_maker(cv2.imread(self.nameOfTarget),2))
+        	self.green_target.plotHistogram(self.hist_maker(cv2.imread(self.nameOfTarget),1))        	
 
     def initUI(self):
-        return NotImplementedError
-        # Write GUI initialization code
+        extractAction = QAction('Histogram Equalization',self)
+        extractAction.triggered.connect(self.histogramButtonClicked)
+
+        self.toolbar = self.addToolBar("Extraction")
+        self.toolbar.addAction(extractAction)
+
+        self.labelINPUT=QLabel(self)
+        self.labelINPUT.setGeometry(50,20,300,500)
+        self.labelTARGET=QLabel(self)
+        self.labelTARGET.setGeometry(400,20,300,500)
+        self.labelResult=QLabel(self)
+        self.labelResult.setGeometry(750,20,300,500)
 
         self.show()
 
