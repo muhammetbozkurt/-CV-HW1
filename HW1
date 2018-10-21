@@ -1,0 +1,111 @@
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, \
+    QPushButton, QGroupBox, QAction, QFileDialog
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QGridLayout
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import Qt
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+
+##########################################
+## Do not forget to delete "return NotImplementedError"
+## while implementing a function
+########################################
+
+class App(QMainWindow):
+    def __init__(self):
+        super(App, self).__init__()
+        self.inputLoaded = False
+        self.targetLoaded = False
+        self.nameOfInput =""
+        self.nameOfTarget=""
+        self.title = 'Histogram Equalization'
+        self.setGeometry(50,50,1100,1000)
+        openInputAction=QAction("&Open input",self)
+        openInputAction.triggered.connect(self.openInputImage)
+        openTargetAction=QAction("&Open target",self)
+        openTargetAction.triggered.connect(self.openTargetImage)
+        exitAction = QAction("&Exit",self)
+        exitAction.triggered.connect(sys.exit)
+
+        self.statusBar()
+
+        mainMenu = self.menuBar()
+        fileMenu = mainMenu.addMenu("&File")
+        fileMenu.addAction(openInputAction)
+        fileMenu.addAction(openTargetAction)
+        fileMenu.addAction(exitAction)
+
+        self.blue_target = PlotCanvas(self,width=3, height=1.2)
+        self.blue_target.move(400,500)
+        self.red_target = PlotCanvas(self,width=3, height=1.2)
+        self.red_target.move(400,650)
+        self.green_target = PlotCanvas(self,width=3, height=1.2)
+        self.green_target.move(400,800)
+
+        self.blue_input = PlotCanvas(self,width=3, height=1.2)
+        self.blue_input.move(50,500)
+        self.red_input = PlotCanvas(self,width=3, height=1.2)
+        self.red_input.move(50,650)
+        self.green_input = PlotCanvas(self,width=3, height=1.2)
+        self.green_input.move(50,800)
+
+        self.blue_re= PlotCanvas(self,width=3, height=1.2)
+        self.blue_re.move(750,500)
+        self.red_re = PlotCanvas(self,width=3, height=1.2)
+        self.red_re.move(750,650)
+        self.green_re = PlotCanvas(self,width=3, height=1.2)
+        self.green_re.move(750,800)
+
+        self.initUI()
+
+    def openInputImage(self):
+        # This function is called when the user clicks File->Input Image.
+        return NotImplementedError
+
+    def openTargetImage(self):
+        # This function is called when the user clicks File->Target Image.
+        return NotImplementedError
+
+    def initUI(self):
+        return NotImplementedError
+        # Write GUI initialization code
+
+        self.show()
+
+    def histogramButtonClicked(self):
+        if not self.inputLoaded and not self.targetLoaded:
+            # Error: "First load input and target images" in MessageBox
+            return NotImplementedError
+        if not self.inputLoaded:
+            # Error: "Load input image" in MessageBox
+            return NotImplementedError
+        elif not self.targetLoaded:
+            # Error: "Load target image" in MessageBox
+            return NotImplementedError
+
+    def calcHistogram(self, I):
+        # Calculate histogram
+        return NotImplementedError
+
+class PlotCanvas(FigureCanvas):
+    def __init__(self, hist, parent=None, width=5, height=4, dpi=100):
+        return NotImplementedError
+        # Init Canvas
+        self.plotHistogram(hist)
+
+    def plotHistogram(self, hist):
+        return NotImplementedError
+        # Plot histogram
+
+        self.draw()
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())
